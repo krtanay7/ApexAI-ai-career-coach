@@ -1,0 +1,232 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  clerkUserId   String    @unique // clerk user id
+  email         String    @unique
+  name          String?
+  imageUrl      String?
+  industry      String?    // Combined industry-subindustry (e.g., "tech-software-development")
+  industryInsight IndustryInsight? @relation(fields: [industry], references: [industry])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Profile fields
+  bio           String?
+  experience    Int?      // Years of experience
+  
+  // Relations
+  skills        String[]  // Array of skills
+  assessments   Assessment[]
+  resume        Resume?
+  coverLetter   CoverLetter[]
+  skillRoadmap  SkillRoadmap?
+  codingChallenges CodingChallenge[]
+  questionProgress QuestionProgress[]
+  favoriteQuestions FavoriteQuestion[]
+}
+
+model Assessment {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+  quizScore     Float     // Overall quiz score
+  questions     Json[]    // Array of {question, answer, userAnswer, isCorrect}
+  category      String    // "Technical", "Behavioral", etc.
+  improvementTip String?  // AI-generated improvement tip
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+model Resume {
+  id          String    @id @default(cuid())
+  userId      String    @unique    // One resume per user
+  user        User      @relation(fields: [userId], references: [id])
+  content     String    @db.Text // Markdown content
+  atsScore    Float?
+  feedback    String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model CoverLetter {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id])
+  content         String    // Markdown content
+  jobDescription  String?
+  companyName     String    // Name of the company applying to
+  jobTitle        String    // Position applying for
+  status          String    @default("draft") // draft, completed
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+// Combined Industry Trends and Salary Insights
+model IndustryInsight {
+  id            String    @id @default(cuid())
+  industry      String    @unique  // The industry this data belongs to (e.g., "tech-software-development")
+  
+  // Users in this industry
+  users         User[]
+  
+  // Salary data
+  salaryRanges  Json[]    // Array of { role: string, min: float, max: float, median: float, location: string? }
+  
+  // Industry trends
+  growthRate    Float     // Industry growth rate
+  demandLevel   String    // "High", "Medium", "Low"
+  topSkills     String[]  // Most in-demand skills
+  
+  // Market conditions
+  marketOutlook String    // "Positive", "Neutral", "Negative"
+  keyTrends     String[]  // Array of current industry trends
+  
+  // Learning suggestions
+  recommendedSkills String[]  // Skills recommended for the industry
+  
+  lastUpdated   DateTime  @default(now())
+  nextUpdate    DateTime  // Scheduled update time
+
+  @@index([industry])
+}
+
+// Skill Improvement Roadmap
+model SkillRoadmap {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  currentSkills   String[]  // User's current skills
+  targetSkills    String[]  // Skills to acquire
+  
+  // Roadmap phases (stored as JSON for flexibility)
+  phases          Json[]    // Array of { phase: number, name: string, skills: [], duration: string, resources: [], milestone: string }
+  
+  overallProgress Int       @default(0) // 0-100 percentage
+  estimatedDuration String? // e.g., "3-6 months"
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([userId])
+}
+
+// Coding Challenges for Practice
+model CodingChallenge {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Challenge details
+  title           String
+  description     String    @db.Text
+  difficulty      String    // Easy, Medium, Hard
+  language        String    // Python, JavaScript, Java, C++, etc.
+  category        String    // Arrays, Strings, DP, Graphs, etc.
+  
+  // Code and test cases
+  starterCode     String    @db.Text
+  solution        String    @db.Text // AI-generated or reference solution
+  testCases       Json[]    // Array of { input: string, expectedOutput: string, explanation: string }
+  
+  // Submission tracking
+  submissions     Int       @default(0)
+  passed          Int       @default(0)
+  bestTime        Int?      // in milliseconds
+  bestSpace       String?   // Space complexity
+  
+  // User progress
+  status          String    @default("not-started") // not-started, in-progress, solved, attempted
+  userCode        String    @db.Text? // User's latest code submission
+  hints           String[]  // Helpful hints
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([userId])
+  @@index([difficulty])
+  @@index([language])
+}
+
+// Interview Questions Bank
+model InterviewQuestion {
+  id              String    @id @default(cuid())
+  
+  // Question details
+  question        String    @db.Text
+  answer          String    @db.Text
+  explanation     String?   @db.Text // Detailed explanation
+  
+  // Categorization
+  company         String    // Google, Amazon, Microsoft, etc.
+  category        String    // DSA, System Design, Behavioral, Database, etc.
+  difficulty      String    // Easy, Medium, Hard
+  role            String    // Software Engineer, DevOps, Product Manager, etc.
+  
+  // Additional info
+  tags            String[]  // Tags for better filtering
+  frequency       Int       @default(0) // How often asked
+  mostAskedBy     String[]  // List of companies that ask this
+  
+  // User progress relations
+  progressRecords QuestionProgress[]
+  favoriteBy      FavoriteQuestion[]
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([company])
+  @@index([category])
+  @@index([difficulty])
+  @@index([role])
+}
+
+// Track user progress on questions
+model QuestionProgress {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  questionId      String
+  question        InterviewQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  
+  // Progress tracking
+  status          String    @default("not-attempted") // not-attempted, attempted, mastered
+  attempts        Int       @default(0)
+  lastAttempted   DateTime?
+  notes           String    @db.Text?
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@unique([userId, questionId])
+  @@index([userId])
+  @@index([status])
+}
+
+// Track favorite questions
+model FavoriteQuestion {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  questionId      String
+  question        InterviewQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  
+  createdAt       DateTime  @default(now())
+  
+  @@unique([userId, questionId])
+  @@index([userId])
+}
