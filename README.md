@@ -2,7 +2,7 @@
 
 > **An AI-powered career development platform that helps professionals build resumes, prepare for interviews, generate cover letters, and gain industry insights.**
 
-[![GitHub](https://img.shields.io/badge/GitHub-riteshbhai70-blue?logo=github)](https://github.com/riteshbhai70)
+[![GitHub](https://img.shields.io/badge/GitHub-riteshbhai70-blue?logo=github)](https://github.com/krtanay7)
 [![Next.js](https://img.shields.io/badge/Next.js-16.1.4-black)](https://nextjs.org)
 [![React](https://img.shields.io/badge/React-19.2.3-blue)](https://react.dev)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-336791)](https://neon.tech)
