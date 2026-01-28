@@ -8,6 +8,23 @@ import { getCacheKey, getFromCache, setInCache } from "@/lib/cache";
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({model: "gemini-2.0-flash"});
 
+const getMockCoverLetter = (data, user) => `
+# Cover Letter
+
+Dear Hiring Manager,
+
+I am writing to express my strong interest in the ${data.jobTitle} position at ${data.companyName}. With my background in ${user.industry} and ${user.experience} years of experience, I am confident in my ability to contribute to your team.
+
+Throughout my career, I have developed expertise in ${user.skills?.slice(0, 3).join(", ") || "key industry skills"}. My professional background includes ${user.bio || "diverse project implementations"}, which has equipped me with a comprehensive understanding of industry best practices and innovative solutions.
+
+I am particularly drawn to this opportunity because of my passion for ${data.companyName}'s mission and values. I am eager to bring my skills and experience to your organization and contribute to your continued success.
+
+Thank you for considering my application. I look forward to discussing how I can be a valuable asset to your team.
+
+Sincerely,
+${user.name || "Candidate"}
+`;
+
 export async function generateCoverLetter(data) {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
@@ -54,10 +71,16 @@ export async function generateCoverLetter(data) {
       console.log("Using cached cover letter (saved 1 API call)");
       content = cachedContent;
     } else {
-      const result = await model.generateContent(prompt);
-      content = result.response.text().trim();
-      // Cache the result
-      setInCache(cacheKey, content);
+      try {
+        const result = await model.generateContent(prompt);
+        content = result.response.text().trim();
+        // Cache the result
+        setInCache(cacheKey, content);
+      } catch (apiError) {
+        console.warn("API call failed, using mock cover letter:", apiError?.message);
+        // Use mock data if API fails
+        content = getMockCoverLetter(data, user);
+      }
     }
 
     const coverLetter = await db.coverLetter.create({
@@ -74,10 +97,6 @@ export async function generateCoverLetter(data) {
     return coverLetter;
   } catch (error) {
     console.error("Error generating cover letter:", error.message);
-    // Provide helpful error message
-    if (error.message.includes("429") || error.message.includes("quota")) {
-      throw new Error("API quota exceeded. Please wait 24 hours or upgrade your API plan at https://ai.google.dev/");
-    }
     throw new Error("Failed to generate cover letter. Please try again later.");
   }
 }

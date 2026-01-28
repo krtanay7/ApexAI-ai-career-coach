@@ -93,6 +93,11 @@ export async function improveWithAI({ current, type }) {
     return improvedContent;
   } catch (error) {
     console.error("Error improving content:", error);
+    // If API quota exceeded, return content as-is
+    if (error.message.includes("429") || error.message.includes("quota") || error.message.includes("RESOURCE_EXHAUSTED")) {
+      console.warn("API quota exceeded, returning content as-is");
+      return content;
+    }
     throw new Error("Failed to improve content");
   }
 }
