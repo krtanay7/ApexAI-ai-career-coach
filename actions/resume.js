@@ -5,8 +5,8 @@ import { auth } from "@clerk/nextjs/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { revalidatePath } from "next/cache";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+const genAI = new GoogleGenerativeAI(process.env.gemini_API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
 export async function saveResume(content) {
   const { userId } = await auth();
@@ -93,11 +93,6 @@ export async function improveWithAI({ current, type }) {
     return improvedContent;
   } catch (error) {
     console.error("Error improving content:", error);
-    // If API quota exceeded, return content as-is
-    if (error.message.includes("429") || error.message.includes("quota") || error.message.includes("RESOURCE_EXHAUSTED")) {
-      console.warn("API quota exceeded, returning content as-is");
-      return content;
-    }
     throw new Error("Failed to improve content");
   }
 }
