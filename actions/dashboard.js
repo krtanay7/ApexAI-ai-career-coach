@@ -31,10 +31,7 @@ export const generateAIInsights = async (industry) => {
 
   // Try a list of candidate models and fall back if a model isn't available
   const modelCandidates = [
-    "gemini-pro",
-    "text-bison-001",
-    "chat-bison-001",
-    "text-bison",
+    "gemini-2.0-flash",
   ];
 
   let lastError = null;
