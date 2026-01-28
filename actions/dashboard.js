@@ -5,11 +5,7 @@ import { auth } from "@clerk/nextjs/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({model: "gemini-pro"});
-console.log(
-  "GEMINI KEY LENGTH:",
-  process.env.GEMINI_API_KEY?.length
-);
+console.log("GEMINI KEY LENGTH:", process.env.GEMINI_API_KEY?.length);
 
 
 export const generateAIInsights = async (industry) => {
@@ -33,12 +29,36 @@ export const generateAIInsights = async (industry) => {
           Include at least 5 skills and trends.
         `;
 
-  const result = await model.generateContent(prompt);
-  const response = result.response;
-  const text = response.text();
-  const cleanedText = text.replace(/```(?:json)?\n?/g, "").trim();
+  // Try a list of candidate models and fall back if a model isn't available
+  const modelCandidates = [
+    "gemini-pro",
+    "text-bison-001",
+    "chat-bison-001",
+    "text-bison",
+  ];
 
-  return JSON.parse(cleanedText);
+  let lastError = null;
+  for (const modelName of modelCandidates) {
+    try {
+      const model = genAI.getGenerativeModel({ model: modelName });
+      const result = await model.generateContent(prompt);
+      const response = result.response;
+      const text = response.text();
+      const cleanedText = text.replace(/```(?:json)?\n?/g, "").trim();
+
+      return JSON.parse(cleanedText);
+    } catch (err) {
+      lastError = err;
+      console.warn(`Model ${modelName} failed:`, err?.message || err);
+      // try next model
+      continue;
+    }
+  }
+
+  // If we reach here, all model attempts failed
+  throw new Error(
+    `All model attempts failed when generating industry insights: ${lastError?.message || lastError}`
+  );
 };
 
 export async function getUserAnalytics() {
