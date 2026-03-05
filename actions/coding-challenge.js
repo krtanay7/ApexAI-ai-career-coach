@@ -293,7 +293,6 @@ export async function submitChallengeCode(challengeId, code, testResults) {
     where: { id: challengeId },
     data: update,
   });
-
   return {
     ...updated,
     testResults,

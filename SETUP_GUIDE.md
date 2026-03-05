@@ -449,3 +449,19 @@ taskkill /F /IM node.exe
 Share this guide with your friend and they'll have the project running in no time! 🚀
 
 Happy coding! 💻
+
+
+if it get failed use 
+🔥 Easiest & SAFEST Option (Recommended)
+Step 1️⃣ VS Code + Dev Server band
+
+(CTRL + C if running)
+
+Step 2️⃣ PowerShell Run as Administrator
+Step 3️⃣ Run these 👇
+rmdir node_modules -Recurse -Force
+rmdir .next -Recurse -Force
+npm install
+npx prisma generate
+npm run dev
+

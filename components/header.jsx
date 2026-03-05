@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import {
   PenBox,
@@ -8,7 +9,7 @@ import {
   FileText,
   GraduationCap,
   ChevronDown,
-  StarsIcon,
+  Sparkles,
   Lightbulb,
 } from "lucide-react";
 import Link from "next/link";
@@ -20,51 +21,74 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import Image from "next/image";
+import ThemeToggle from "./theme-toggle";
+import { useTheme } from "next-themes";
 
 export default function Header() {
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const logoSrc =
+    mounted && resolvedTheme === "light" ? "/logo_dark.png" : "/logoo.png";
+
   return (
-    <header className="fixed top-0 w-full border-b bg-background/80 backdrop-blur-md z-50 supports-[backdrop-filter]:bg-background/60">
-      <nav className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <Link href="/">
-          <Image
-            src={"/logoo.png"}
-            alt="ApexAi Logo"
-            width={200}
-            height={60}
-            className="h-12 py-1 w-auto object-contain"
-          />
+    <header className="fixed top-0 z-50 w-full border-b border-white/10 bg-background/70 backdrop-blur-2xl">
+      <nav className="container mx-auto flex h-20 items-center justify-between px-4">
+        <Link href="/" className="group flex items-center gap-3">
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-2 transition-transform duration-300 group-hover:rotate-3">
+            <Image
+              src={logoSrc}
+              alt="ApexAI Logo"
+              width={150}
+              height={48}
+              className="h-10 w-auto object-contain"
+            />
+          </div>
+          <div className="hidden md:block">
+            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+              AI Career Intelligence
+            </p>
+            <p className="font-semibold">ApexAI Coach</p>
+          </div>
         </Link>
 
-        {/* Action Buttons */}
-        <div className="flex items-center space-x-2 md:space-x-4">
+        <div className="flex items-center gap-2 md:gap-3">
+          <ThemeToggle />
+
           <SignedIn>
             <Link href="/dashboard">
               <Button
                 variant="outline"
-                className="hidden md:inline-flex items-center gap-2"
+                className="hidden items-center gap-2 md:inline-flex"
               >
                 <LayoutDashboard className="h-4 w-4" />
-                Industry Insights
+                Dashboard
               </Button>
-              <Button variant="ghost" className="md:hidden w-10 h-10 p-0">
+              <Button variant="ghost" className="h-10 w-10 p-0 md:hidden">
                 <LayoutDashboard className="h-4 w-4" />
               </Button>
             </Link>
 
-            {/* Growth Tools Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button className="flex items-center gap-2">
-                  <StarsIcon className="h-4 w-4" />
-                  <span className="hidden md:block">Growth Tools</span>
+                  <Sparkles className="h-4 w-4" />
+                  <span className="hidden md:block">Toolkit</span>
                   <ChevronDown className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuContent
+                align="end"
+                className="w-56 border-white/10 bg-card/90 backdrop-blur-xl"
+              >
                 <DropdownMenuItem asChild>
                   <Link href="/resume" className="flex items-center gap-2">
                     <FileText className="h-4 w-4" />
-                    Build Resume
+                    Resume Builder
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
@@ -73,7 +97,7 @@ export default function Header() {
                     className="flex items-center gap-2"
                   >
                     <PenBox className="h-4 w-4" />
-                    Cover Letter
+                    Cover Letters
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
@@ -102,7 +126,7 @@ export default function Header() {
             <UserButton
               appearance={{
                 elements: {
-                  avatarBox: "w-10 h-10",
+                  avatarBox: "w-10 h-10 ring-2 ring-primary/40",
                   userButtonPopoverCard: "shadow-xl",
                   userPreviewMainIdentifier: "font-semibold",
                 },

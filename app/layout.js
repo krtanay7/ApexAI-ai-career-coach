@@ -1,4 +1,4 @@
-import { Inter } from "next/font/google";
+import { Manrope, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "sonner";
@@ -6,11 +6,19 @@ import Header from "@/components/header";
 import { ThemeProvider } from "@/components/theme-provider";
 import { dark } from "@clerk/themes";
 
-const inter = Inter({ subsets: ["latin"] });
+const manrope = Manrope({
+  subsets: ["latin"],
+  variable: "--font-body",
+});
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-display",
+});
 
 export const metadata = {
-  title: "AI Career Coach",
-  description: "",
+  title: "ApexAI Career Coach",
+  description: "AI-powered career growth and interview preparation platform.",
 };
 
 export default function RootLayout({ children }) {
@@ -24,20 +32,19 @@ export default function RootLayout({ children }) {
         <head>
           <link rel="icon" href="/logoo.png" sizes="any" />
         </head>
-        <body className={`${inter.className}`}>
+        <body className={`${manrope.variable} ${spaceGrotesk.variable}`}>
           <ThemeProvider
             attribute="class"
-            defaultTheme="dark"
+            defaultTheme="system"
             enableSystem
             disableTransitionOnChange
           >
             <Header />
             <main className="min-h-screen">{children}</main>
             <Toaster richColors />
-
-            <footer className="bg-muted/50 py-12">
-              <div className="container mx-auto px-4 text-center text-gray-200">
-                <p>Made with 💗 by K.Tanay</p>
+            <footer className="border-t border-white/10 bg-transparent py-10">
+              <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
+                <p>ApexAI Career Coach by K. Tanay</p>
               </div>
             </footer>
           </ThemeProvider>

@@ -82,6 +82,26 @@ const DashboardView = ({ insights, analytics }) => {
   }, [analytics]);
 
   const COLORS = ["#3b82f6", "#8b5cf6", "#ec4899", "#f59e0b", "#10b981"];
+  const chartGrid = "hsl(var(--border))";
+  const chartAxis = "hsl(var(--muted-foreground))";
+  const chartText = "hsl(var(--foreground))";
+  const chartCard = "hsl(var(--card))";
+  const salaryBarColors = {
+    min: "#a5b4c8",
+    median: "#64748b",
+    max: "#334155",
+  };
+  const chartTooltipStyle = {
+    backgroundColor: chartCard,
+    border: `1px solid ${chartGrid}`,
+    borderRadius: "12px",
+    color: chartText,
+    boxShadow: "0 12px 28px rgba(2, 8, 23, 0.12)",
+  };
+  const legendFormatter = (value) => (
+    <span style={{ color: chartAxis, fontWeight: 600 }}>{value}</span>
+  );
+  const skillChartHeight = Math.max(300, skillGapData.length * 56);
 
   const getDemandLevelColor = (level) => {
     switch (level.toLowerCase()) {
@@ -245,7 +265,7 @@ const DashboardView = ({ insights, analytics }) => {
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Salary Ranges Chart */}
-        <Card className="lg:col-span-2">
+        <Card className="lg:col-span-2 overflow-hidden border-border/70">
           <CardHeader>
             <CardTitle>Salary Ranges by Role</CardTitle>
             <CardDescription>
@@ -253,20 +273,60 @@ const DashboardView = ({ insights, analytics }) => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-[400px]">
+            <div className="h-[420px] rounded-2xl border border-border/60 bg-gradient-to-b from-background to-muted/20 p-4">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={salaryData} margin={{ bottom: 20 }}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
-                  <YAxis />
+                <BarChart
+                  data={salaryData}
+                  margin={{ top: 16, right: 14, left: 4, bottom: 24 }}
+                  barCategoryGap={20}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} />
+                  <XAxis
+                    dataKey="name"
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
+                    tick={{ fill: chartAxis, fontSize: 13 }}
+                    axisLine={{ stroke: chartGrid }}
+                    tickLine={{ stroke: chartGrid }}
+                  />
+                  <YAxis
+                    tick={{ fill: chartAxis, fontSize: 13 }}
+                    axisLine={{ stroke: chartGrid }}
+                    tickLine={{ stroke: chartGrid }}
+                  />
                   <Tooltip
-                    contentStyle={{ backgroundColor: "#f8f9fa", border: "1px solid #e5e7eb" }}
+                    contentStyle={chartTooltipStyle}
+                    cursor={{ fill: "hsl(var(--muted) / 0.25)" }}
+                    labelStyle={{ color: chartText, fontWeight: 600 }}
                     formatter={(value) => `$${value}K`}
                   />
-                  <Legend />
-                  <Bar dataKey="min" fill="#94a3b8" name="Min Salary" />
-                  <Bar dataKey="median" fill="#64748b" name="Median Salary" />
-                  <Bar dataKey="max" fill="#475569" name="Max Salary" />
+                  <Legend
+                    wrapperStyle={{ paddingTop: "6px" }}
+                    formatter={legendFormatter}
+                    iconType="circle"
+                  />
+                  <Bar
+                    dataKey="min"
+                    fill={salaryBarColors.min}
+                    name="Min Salary"
+                    radius={[6, 6, 0, 0]}
+                    maxBarSize={36}
+                  />
+                  <Bar
+                    dataKey="median"
+                    fill={salaryBarColors.median}
+                    name="Median Salary"
+                    radius={[6, 6, 0, 0]}
+                    maxBarSize={36}
+                  />
+                  <Bar
+                    dataKey="max"
+                    fill={salaryBarColors.max}
+                    name="Max Salary"
+                    radius={[6, 6, 0, 0]}
+                    maxBarSize={36}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -284,14 +344,24 @@ const DashboardView = ({ insights, analytics }) => {
               <div className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={assessmentTimeline}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis domain={[0, 100]} />
+                    <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} />
+                    <XAxis
+                      dataKey="date"
+                      tick={{ fill: chartAxis }}
+                      axisLine={{ stroke: chartGrid }}
+                      tickLine={{ stroke: chartGrid }}
+                    />
+                    <YAxis
+                      domain={[0, 100]}
+                      tick={{ fill: chartAxis }}
+                      axisLine={{ stroke: chartGrid }}
+                      tickLine={{ stroke: chartGrid }}
+                    />
                     <Tooltip
-                      contentStyle={{ backgroundColor: "#f8f9fa", border: "1px solid #e5e7eb" }}
+                      contentStyle={chartTooltipStyle}
                       formatter={(value) => `${value}%`}
                     />
-                    <Legend />
+                    <Legend wrapperStyle={{ color: chartAxis }} />
                     <Line
                       type="monotone"
                       dataKey="score"
@@ -307,27 +377,74 @@ const DashboardView = ({ insights, analytics }) => {
         )}
 
         {/* Skill Gap Analysis */}
-        <Card>
+        <Card className="overflow-hidden border-border/70">
           <CardHeader>
             <CardTitle>Skill Gap Analysis</CardTitle>
             <CardDescription>Your skills vs. industry requirements</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-[300px]">
+            <div
+              className="rounded-2xl border border-border/60 bg-gradient-to-b from-background to-muted/20 p-4"
+              style={{ height: `${skillChartHeight}px` }}
+            >
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={skillGapData}
                   layout="vertical"
-                  margin={{ left: 100 }}
+                  barCategoryGap={14}
+                  margin={{ left: 14, right: 16, top: 12, bottom: 10 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" domain={[0, 100]} />
-                  <YAxis dataKey="skill" type="category" width={100} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: "#f8f9fa", border: "1px solid #e5e7eb" }}
-                    formatter={(value) => (value === 100 ? "✓ Have" : "✗ Need")}
+                  <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} />
+                  <XAxis
+                    type="number"
+                    domain={[0, 100]}
+                    tick={{ fill: chartAxis }}
+                    axisLine={{ stroke: chartGrid }}
+                    tickLine={{ stroke: chartGrid }}
                   />
-                  <Bar dataKey="hasSkill" fill="#10b981" />
+                  <YAxis
+                    dataKey="skill"
+                    type="category"
+                    width={180}
+                    interval={0}
+                    tick={{ fill: chartAxis, fontSize: 13 }}
+                    tickMargin={8}
+                    axisLine={{ stroke: chartGrid }}
+                    tickLine={{ stroke: chartGrid }}
+                    tickFormatter={(value) =>
+                      value.length > 26 ? `${value.slice(0, 26)}...` : value
+                    }
+                  />
+                  <Tooltip
+                    contentStyle={chartTooltipStyle}
+                    labelStyle={{ color: chartText, fontWeight: 600 }}
+                    formatter={(value, name) =>
+                      name === "Your Skill Match"
+                        ? value === 100
+                          ? "Yes"
+                          : "No"
+                        : `${value}%`
+                    }
+                  />
+                  <Legend
+                    wrapperStyle={{ paddingTop: "8px" }}
+                    formatter={legendFormatter}
+                    iconType="circle"
+                  />
+                  <Bar
+                    dataKey={() => 100}
+                    name="Industry Requirement"
+                    fill="hsl(var(--muted-foreground) / 0.18)"
+                    radius={[0, 4, 4, 0]}
+                    barSize={14}
+                  />
+                  <Bar
+                    dataKey="hasSkill"
+                    name="Your Skill Match"
+                    fill="#10b981"
+                    radius={[0, 4, 4, 0]}
+                    barSize={14}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -360,6 +477,7 @@ const DashboardView = ({ insights, analytics }) => {
                       ))}
                     </Pie>
                     <Tooltip
+                      contentStyle={chartTooltipStyle}
                       formatter={(value) => `${value.toFixed(1)}%`}
                     />
                   </PieChart>
@@ -518,3 +636,4 @@ const DashboardView = ({ insights, analytics }) => {
 };
 
 export default DashboardView;
+
