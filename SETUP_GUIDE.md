@@ -200,7 +200,7 @@ Create a `.env` file in the project root folder with all the API keys.
 DATABASE_URL="postgresql://user:password@host:5432/dbname"
 
 # gemini AI API Key (from Google)
-gemini_API_KEY="your_gemini_api_key_here"
+GROQ_API_KEY="your_gemini_api_key_here"
 
 # Clerk Authentication Keys
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_test_your_clerk_publishable_key"
@@ -464,4 +464,5 @@ rmdir .next -Recurse -Force
 npm install
 npx prisma generate
 npm run dev
+
 

@@ -396,3 +396,4 @@ npm run lint         # Check code quality
 - Follow the folder structure pattern
 - Test changes in dev mode before production
 - Use `npm run lint` to check for errors
+

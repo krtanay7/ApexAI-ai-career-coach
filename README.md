@@ -275,7 +275,7 @@ NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/onboarding
 # ==========================================
 # GOOGLE gemini AI API
 # ==========================================
-gemini_API_KEY="your_gemini_api_key_here"
+GROQ_API_KEY="your_gemini_api_key_here"
 
 # ==========================================
 # INNGEST (Background Jobs)
@@ -295,7 +295,7 @@ INNGEST_EVENT_KEY="optional_for_inngest_events"
    - Create an application
    - Copy publishable and secret keys
 
-3. **gemini_API_KEY**:
+3. **GROQ_API_KEY**:
    - Visit [Google AI Studio](https://ai.google.dev)
    - Create API key for gemini
 
@@ -965,3 +965,4 @@ For issues, questions, or suggestions:
 ---
 
 **Made with ❤️ by [riteshbhai70](https://github.com/riteshbhai70)**
+

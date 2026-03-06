@@ -2,10 +2,12 @@
 
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+const MISSING_TABLE_ERROR_CODE = "P2021";
+
+const isCodingChallengeTableMissing = (error) =>
+  error?.code === MISSING_TABLE_ERROR_CODE &&
+  String(error?.message || "").includes("CodingChallenge");
 
 // Mock coding challenges data
 const getMockChallenges = (language) => [
@@ -209,6 +211,13 @@ export async function generateCodingChallenges(language = "JavaScript", difficul
 
     return savedChallenges.length > 0 ? savedChallenges : filtered;
   } catch (error) {
+    if (isCodingChallengeTableMissing(error)) {
+      const mockChallenges = getMockChallenges(language);
+      return difficulty
+        ? mockChallenges.filter((c) => c.difficulty === difficulty)
+        : mockChallenges;
+    }
+
     console.error("Error generating coding challenges:", error);
     return getMockChallenges(language);
   }
@@ -225,15 +234,6 @@ export async function getCodingChallenges(language = null, difficulty = null) {
 
     if (!user) throw new Error("User not found");
 
-    // Check if db has codingChallenge model
-    if (!db.codingChallenge) {
-      const mockChallenges = getMockChallenges(language);
-      return {
-        challenges: mockChallenges,
-        stats: { total: mockChallenges.length, solved: 0 }
-      };
-    }
-
     const where = { userId: user.id };
     if (language) where.language = language;
     if (difficulty) where.difficulty = difficulty;
@@ -245,11 +245,35 @@ export async function getCodingChallenges(language = null, difficulty = null) {
 
     // If no challenges exist, generate them
     if (challenges.length === 0) {
-      return await generateCodingChallenges(language, difficulty);
+      const generated = await generateCodingChallenges(language, difficulty);
+      const generatedChallenges = Array.isArray(generated) ? generated : [];
+      return {
+        challenges: generatedChallenges,
+        stats: {
+          total: generatedChallenges.length,
+          solved: generatedChallenges.filter((c) => c.status === "solved").length,
+        },
+      };
     }
 
     return { challenges, stats: { total: challenges.length, solved: challenges.filter(c => c.status === "solved").length } };
   } catch (error) {
+    if (isCodingChallengeTableMissing(error)) {
+      const mockChallenges = getMockChallenges(language);
+      const filtered = difficulty
+        ? mockChallenges.filter((c) => c.difficulty === difficulty)
+        : mockChallenges;
+      return {
+        challenges: filtered,
+        stats: {
+          total: filtered.length,
+          solved: 0,
+          byDifficulty: { easy: 3, medium: 2, hard: 0 },
+          byLanguage: { JavaScript: 5 },
+        },
+      };
+    }
+
     console.error("Error fetching coding challenges:", error);
     // Return fallback mock data
     const mockChallenges = getMockChallenges(language);
@@ -270,9 +294,17 @@ export async function submitChallengeCode(challengeId, code, testResults) {
 
   if (!user) throw new Error("User not found");
 
-  const challenge = await db.codingChallenge.findUnique({
-    where: { id: challengeId },
-  });
+  let challenge;
+  try {
+    challenge = await db.codingChallenge.findUnique({
+      where: { id: challengeId },
+    });
+  } catch (error) {
+    if (isCodingChallengeTableMissing(error)) {
+      throw new Error("Coding challenges are unavailable until database migrations are applied.");
+    }
+    throw error;
+  }
 
   if (!challenge || challenge.userId !== user.id) {
     throw new Error("Challenge not found");
@@ -289,10 +321,19 @@ export async function submitChallengeCode(challengeId, code, testResults) {
     status: allPassed ? "solved" : "attempted",
   };
 
-  const updated = await db.codingChallenge.update({
-    where: { id: challengeId },
-    data: update,
-  });
+  let updated;
+  try {
+    updated = await db.codingChallenge.update({
+      where: { id: challengeId },
+      data: update,
+    });
+  } catch (error) {
+    if (isCodingChallengeTableMissing(error)) {
+      throw new Error("Coding challenges are unavailable until database migrations are applied.");
+    }
+    throw error;
+  }
+
   return {
     ...updated,
     testResults,
@@ -312,22 +353,6 @@ export async function getChallengeProgress() {
     });
 
     if (!user) throw new Error("User not found");
-
-    // Check if db has codingChallenge model
-    if (!db.codingChallenge) {
-      return {
-        challenges: getMockChallenges(),
-        stats: {
-          total: 5,
-          solved: 0,
-          attempted: 0,
-          notStarted: 5,
-          byDifficulty: { easy: 3, medium: 2, hard: 0 },
-          byLanguage: { "JavaScript": 5 },
-          totalSubmissions: 0,
-        }
-      };
-    }
 
     const challenges = await db.codingChallenge.findMany({
       where: { userId: user.id },
@@ -354,6 +379,21 @@ export async function getChallengeProgress() {
 
     return { challenges, stats };
   } catch (error) {
+    if (isCodingChallengeTableMissing(error)) {
+      return {
+        challenges: getMockChallenges(),
+        stats: {
+          total: 5,
+          solved: 0,
+          attempted: 0,
+          notStarted: 5,
+          byDifficulty: { easy: 3, medium: 2, hard: 0 },
+          byLanguage: { JavaScript: 5 },
+          totalSubmissions: 0,
+        },
+      };
+    }
+
     console.error("Error fetching challenge progress:", error);
     return {
       challenges: getMockChallenges(),
@@ -374,9 +414,17 @@ export async function getHints(challengeId) {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
 
-  const challenge = await db.codingChallenge.findUnique({
-    where: { id: challengeId },
-  });
+  let challenge;
+  try {
+    challenge = await db.codingChallenge.findUnique({
+      where: { id: challengeId },
+    });
+  } catch (error) {
+    if (isCodingChallengeTableMissing(error)) {
+      return [];
+    }
+    throw error;
+  }
 
   if (!challenge) throw new Error("Challenge not found");
 

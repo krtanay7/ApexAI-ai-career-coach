@@ -2,10 +2,7 @@
 
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
-
-const genAI = new GoogleGenerativeAI(process.env.gemini_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+import { generateText } from "@/lib/ai";
 
 export const generateAIInsights = async (industry) => {
   const prompt = `
@@ -28,9 +25,7 @@ export const generateAIInsights = async (industry) => {
           Include at least 5 skills and trends.
         `;
 
-  const result = await model.generateContent(prompt);
-  const response = result.response;
-  const text = response.text();
+  const text = await generateText(prompt);
   const cleanedText = text.replace(/```(?:json)?\n?/g, "").trim();
 
   return JSON.parse(cleanedText);

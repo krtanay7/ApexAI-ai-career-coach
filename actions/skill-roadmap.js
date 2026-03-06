@@ -2,11 +2,8 @@
 
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { getCacheKey, getFromCache, setInCache } from "@/lib/cache";
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+import { generateText } from "@/lib/ai";
 
 // Mock data for fallback when API quota exceeded
 const getMockRoadmap = (currentSkills, targetSkills) => ({
@@ -122,9 +119,7 @@ export async function generateSkillRoadmap() {
       console.log("Using cached skill roadmap");
       roadmapData = cachedRoadmap;
     } else {
-      const result = await model.generateContent(prompt);
-      const response = result.response;
-      const text = response.text();
+      const text = await generateText(prompt);
       const cleanedText = text.replace(/```(?:json)?\n?/g, "").trim();
       roadmapData = JSON.parse(cleanedText);
       setInCache(cacheKey, roadmapData);

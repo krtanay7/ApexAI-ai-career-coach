@@ -2,11 +2,8 @@
 
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { getCacheKey, getFromCache, setInCache } from "@/lib/cache";
-
-const genAI = new GoogleGenerativeAI(process.env.gemini_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+import { generateText } from "@/lib/ai";
 
 export async function generateCoverLetter(data) {
   const { userId } = await auth();
@@ -54,8 +51,7 @@ export async function generateCoverLetter(data) {
       console.log("Using cached cover letter (saved 1 API call)");
       content = cachedContent;
     } else {
-      const result = await model.generateContent(prompt);
-      content = result.response.text().trim();
+      content = await generateText(prompt);
       // Cache the result
       setInCache(cacheKey, content);
     }
@@ -76,7 +72,7 @@ export async function generateCoverLetter(data) {
     console.error("Error generating cover letter:", error.message);
     // Provide helpful error message
     if (error.message.includes("429") || error.message.includes("quota")) {
-      throw new Error("API quota exceeded. Please wait 24 hours or upgrade your API plan at https://ai.google.dev/");
+      throw new Error("API quota exceeded. Please wait 24 hours or upgrade your API plan.");
     }
     throw new Error("Failed to generate cover letter. Please try again later.");
   }

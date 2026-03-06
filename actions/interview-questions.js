@@ -3,6 +3,13 @@
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 
+const MISSING_TABLE_ERROR_CODE = "P2021";
+const INTERVIEW_TABLES = ["InterviewQuestion", "QuestionProgress", "FavoriteQuestion"];
+
+const isInterviewFeatureTableMissing = (error) =>
+  error?.code === MISSING_TABLE_ERROR_CODE &&
+  INTERVIEW_TABLES.some((table) => String(error?.message || "").includes(table));
+
 // Mock interview questions - extensive bank
 const getMockQuestions = () => [
   // Google DSA Questions
@@ -275,6 +282,9 @@ export async function getQuestionsByCompany(company, difficulty = null, limit = 
 
     return questions;
   } catch (error) {
+    if (isInterviewFeatureTableMissing(error)) {
+      return getMockQuestions().filter(q => q.company === company && (!difficulty || q.difficulty === difficulty)).slice(0, limit);
+    }
     console.error("Error fetching questions by company:", error);
     return getMockQuestions().filter(q => q.company === company && (!difficulty || q.difficulty === difficulty)).slice(0, limit);
   }
@@ -298,6 +308,9 @@ export async function getQuestionsByCategory(category, difficulty = null, limit 
 
     return questions;
   } catch (error) {
+    if (isInterviewFeatureTableMissing(error)) {
+      return getMockQuestions().filter(q => q.category === category && (!difficulty || q.difficulty === difficulty)).slice(0, limit);
+    }
     console.error("Error fetching questions by category:", error);
     return getMockQuestions().filter(q => q.category === category && (!difficulty || q.difficulty === difficulty)).slice(0, limit);
   }
@@ -333,6 +346,9 @@ export async function getAllQuestions(filters = {}) {
 
     return questions;
   } catch (error) {
+    if (isInterviewFeatureTableMissing(error)) {
+      return getMockQuestions().slice(0, 50);
+    }
     console.error("Error fetching questions:", error);
     return getMockQuestions().slice(0, 50);
   }
@@ -382,6 +398,9 @@ export async function toggleFavoriteQuestion(questionId) {
       return { favorited: true };
     }
   } catch (error) {
+    if (isInterviewFeatureTableMissing(error)) {
+      throw new Error("Interview question features are unavailable until database migrations are applied.");
+    }
     console.error("Error toggling favorite:", error);
     throw error;
   }
@@ -434,6 +453,9 @@ export async function markQuestionProgress(questionId, status) {
       });
     }
   } catch (error) {
+    if (isInterviewFeatureTableMissing(error)) {
+      throw new Error("Interview question features are unavailable until database migrations are applied.");
+    }
     console.error("Error marking progress:", error);
     throw error;
   }
@@ -481,6 +503,21 @@ export async function getQuestionProgress() {
 
     return { progress, stats, favorites };
   } catch (error) {
+    if (isInterviewFeatureTableMissing(error)) {
+      return {
+        progress: [],
+        stats: {
+          total: 0,
+          mastered: 0,
+          attempted: 0,
+          notAttempted: 0,
+          favorites: 0,
+          byCategory: {},
+          byDifficulty: {},
+        },
+        favorites: [],
+      };
+    }
     console.error("Error fetching progress:", error);
     return {
       progress: [],
@@ -518,6 +555,9 @@ export async function getFavoriteQuestions() {
 
     return favorites.map(f => f.question);
   } catch (error) {
+    if (isInterviewFeatureTableMissing(error)) {
+      return [];
+    }
     console.error("Error fetching favorites:", error);
     return [];
   }
@@ -537,6 +577,9 @@ export async function getQuestionsByCompanyForExport(company) {
 
     return questions;
   } catch (error) {
+    if (isInterviewFeatureTableMissing(error)) {
+      return getMockQuestions().filter(q => q.company === company);
+    }
     console.error("Error fetching questions for export:", error);
     return getMockQuestions().filter(q => q.company === company);
   }

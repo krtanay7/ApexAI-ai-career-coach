@@ -146,7 +146,7 @@ Fast responses (1-2 seconds vs 10+ seconds with other models)
 Cheap (costs pennies per request)
 Smart (understands context, generates professional content)
 Reliable (Google's infrastructure)
-API Key: gemini_API_KEY (from Google AI Studio)
+API Key: GROQ_API_KEY (from Google AI Studio)
 
 What it does:
 
@@ -199,7 +199,7 @@ How it helps students?
 Industry data always up-to-date
 No need to manually refresh
 📊 Complete API Keys Explained
-1. gemini_API_KEY
+1. GROQ_API_KEY
 What it is: Google's AI API key
 Where to get: https://ai.google.dev
 Cost: FREE for first 15 requests/day, then ~$0.00035 per request

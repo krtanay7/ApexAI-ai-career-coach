@@ -2,11 +2,8 @@
 
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { getCacheKey, getFromCache, setInCache } from "@/lib/cache";
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+import { generateText } from "@/lib/ai";
 
 // Fallback mock data when API quota is exceeded
 const getMockQuizData = () => ({
@@ -231,9 +228,7 @@ export async function generateQuiz() {
       console.log("Using cached quiz (saved 1 API call)");
       quiz = cachedQuiz;
     } else {
-      const result = await model.generateContent(prompt);
-      const response = result.response;
-      const text = response.text();
+      const text = await generateText(prompt);
       const cleanedText = text.replace(/```(?:json)?\n?/g, "").trim();
       quiz = JSON.parse(cleanedText);
       // Cache the result
@@ -304,9 +299,7 @@ export async function generateJobSpecificQuestions(jobDescription = "") {
       console.log("Using cached job questions (saved 1 API call)");
       questions = cachedQuestions;
     } else {
-      const result = await model.generateContent(prompt);
-      const response = result.response;
-      const text = response.text();
+      const text = await generateText(prompt);
       const cleanedText = text.replace(/```(?:json)?\n?/g, "").trim();
       questions = JSON.parse(cleanedText);
       // Cache the result
@@ -368,9 +361,7 @@ export async function saveQuizResult(questions, answers, score) {
     `;
 
     try {
-      const tipResult = await model.generateContent(improvementPrompt);
-
-      improvementTip = tipResult.response.text().trim();
+      improvementTip = await generateText(improvementPrompt);
       console.log(improvementTip);
     } catch (error) {
       console.error("Error generating improvement tip:", error);
