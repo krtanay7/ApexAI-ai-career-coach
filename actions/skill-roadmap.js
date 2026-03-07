@@ -5,6 +5,12 @@ import { auth } from "@clerk/nextjs/server";
 import { getCacheKey, getFromCache, setInCache } from "@/lib/cache";
 import { generateText } from "@/lib/ai";
 
+const MISSING_TABLE_ERROR_CODE = "P2021";
+
+const isSkillRoadmapTableMissing = (error) =>
+  error?.code === MISSING_TABLE_ERROR_CODE &&
+  String(error?.message || "").includes("SkillRoadmap");
+
 // Mock data for fallback when API quota exceeded
 const getMockRoadmap = (currentSkills, targetSkills) => ({
   phases: [
@@ -129,55 +135,92 @@ export async function generateSkillRoadmap() {
     const learnedSkills = skillsToLearn.filter(skill => currentSkills.includes(skill)).length;
     const overallProgress = skillsToLearn.length > 0 ? Math.round((learnedSkills / skillsToLearn.length) * 100) : 0;
 
-    // Save to database
-    const roadmap = await db.skillRoadmap.upsert({
-      where: { userId: user.id },
-      update: {
-        currentSkills,
-        targetSkills,
-        phases: roadmapData.phases,
-        overallProgress,
-        estimatedDuration: "3-6 months",
-      },
-      create: {
-        userId: user.id,
-        currentSkills,
-        targetSkills,
-        phases: roadmapData.phases,
-        overallProgress,
-        estimatedDuration: "3-6 months",
-      },
-    });
-
-    return roadmap;
-  } catch (error) {
-    console.error("Error generating skill roadmap:", error);
-    
-    // Fallback to mock data if API quota exceeded
-    if (error.message.includes("429") || error.message.includes("quota") || error.message.includes("RESOURCE_EXHAUSTED")) {
-      console.warn("API quota exceeded, using fallback roadmap");
-      const mockData = getMockRoadmap(currentSkills, skillsToLearn);
-      
+    // Save to database when table exists; otherwise return transient roadmap
+    try {
       const roadmap = await db.skillRoadmap.upsert({
         where: { userId: user.id },
         update: {
           currentSkills,
           targetSkills,
-          phases: mockData.phases,
-          overallProgress: 0,
+          phases: roadmapData.phases,
+          overallProgress,
           estimatedDuration: "3-6 months",
         },
         create: {
           userId: user.id,
           currentSkills,
           targetSkills,
-          phases: mockData.phases,
-          overallProgress: 0,
+          phases: roadmapData.phases,
+          overallProgress,
           estimatedDuration: "3-6 months",
         },
       });
-      
+
       return roadmap;
+    } catch (error) {
+      if (isSkillRoadmapTableMissing(error)) {
+        return {
+          currentSkills,
+          targetSkills,
+          phases: roadmapData.phases,
+          overallProgress,
+          estimatedDuration: "3-6 months",
+        };
+      }
+      throw error;
+    }
+  } catch (error) {
+    console.error("Error generating skill roadmap:", error);
+
+    if (isSkillRoadmapTableMissing(error)) {
+      const mockData = getMockRoadmap(currentSkills, skillsToLearn);
+      return {
+        currentSkills,
+        targetSkills,
+        phases: mockData.phases,
+        overallProgress: 0,
+        estimatedDuration: "3-6 months",
+      };
+    }
+    
+    // Fallback to mock data if API quota exceeded
+    if (error.message.includes("429") || error.message.includes("quota") || error.message.includes("RESOURCE_EXHAUSTED")) {
+      console.warn("API quota exceeded, using fallback roadmap");
+      const mockData = getMockRoadmap(currentSkills, skillsToLearn);
+
+      try {
+        const roadmap = await db.skillRoadmap.upsert({
+          where: { userId: user.id },
+          update: {
+            currentSkills,
+            targetSkills,
+            phases: mockData.phases,
+            overallProgress: 0,
+            estimatedDuration: "3-6 months",
+          },
+          create: {
+            userId: user.id,
+            currentSkills,
+            targetSkills,
+            phases: mockData.phases,
+            overallProgress: 0,
+            estimatedDuration: "3-6 months",
+          },
+        });
+
+        return roadmap;
+      } catch (dbError) {
+        if (isSkillRoadmapTableMissing(dbError)) {
+          return {
+            currentSkills,
+            targetSkills,
+            phases: mockData.phases,
+            overallProgress: 0,
+            estimatedDuration: "3-6 months",
+          };
+        }
+        throw dbError;
+      }
     }
     
     throw new Error("Failed to generate skill roadmap. Please try again later.");
@@ -190,13 +233,34 @@ export async function getSkillRoadmap() {
 
   const user = await db.user.findUnique({
     where: { clerkUserId: userId },
+    include: { industryInsight: true },
   });
 
   if (!user) throw new Error("User not found");
 
-  const roadmap = await db.skillRoadmap.findUnique({
-    where: { userId: user.id },
-  });
+  let roadmap = null;
+  try {
+    roadmap = await db.skillRoadmap.findUnique({
+      where: { userId: user.id },
+    });
+  } catch (error) {
+    if (isSkillRoadmapTableMissing(error)) {
+      const currentSkills = user.skills || [];
+      const targetSkills =
+        user.industryInsight?.topSkills || user.industryInsight?.recommendedSkills || [];
+      const skillsToLearn = targetSkills.filter((skill) => !currentSkills.includes(skill));
+      const mockData = getMockRoadmap(currentSkills, skillsToLearn);
+
+      return {
+        currentSkills,
+        targetSkills,
+        phases: mockData.phases,
+        overallProgress: 0,
+        estimatedDuration: "3-6 months",
+      };
+    }
+    throw error;
+  }
 
   if (!roadmap) {
     // Generate if doesn't exist
@@ -216,9 +280,17 @@ export async function updateRoadmapProgress(skillsCompleted) {
 
   if (!user) throw new Error("User not found");
 
-  const roadmap = await db.skillRoadmap.findUnique({
-    where: { userId: user.id },
-  });
+  let roadmap;
+  try {
+    roadmap = await db.skillRoadmap.findUnique({
+      where: { userId: user.id },
+    });
+  } catch (error) {
+    if (isSkillRoadmapTableMissing(error)) {
+      throw new Error("Skill roadmap is unavailable until database migrations are applied.");
+    }
+    throw error;
+  }
 
   if (!roadmap) throw new Error("Roadmap not found");
 
@@ -236,10 +308,17 @@ export async function updateRoadmapProgress(skillsCompleted) {
   const progress = Math.round((completedCount / roadmap.targetSkills.length) * 100);
 
   // Update roadmap
-  return await db.skillRoadmap.update({
-    where: { userId: user.id },
-    data: {
-      overallProgress: progress,
-    },
-  });
+  try {
+    return await db.skillRoadmap.update({
+      where: { userId: user.id },
+      data: {
+        overallProgress: progress,
+      },
+    });
+  } catch (error) {
+    if (isSkillRoadmapTableMissing(error)) {
+      throw new Error("Skill roadmap is unavailable until database migrations are applied.");
+    }
+    throw error;
+  }
 }
