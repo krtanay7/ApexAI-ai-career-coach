@@ -178,7 +178,7 @@ export default function ResumeBuilder({ initialContent }) {
               </>
             )}
           </Button>
-          <Button onClick={generatePDF} disabled={isGenerating}>
+          {/* <Button onClick={generatePDF} disabled={isGenerating}>
             {isGenerating ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -190,7 +190,7 @@ export default function ResumeBuilder({ initialContent }) {
                 Download PDF
               </>
             )}
-          </Button>
+          </Button> */}
         </div>
       </div>
 
