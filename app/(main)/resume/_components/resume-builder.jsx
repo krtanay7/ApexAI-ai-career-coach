@@ -89,11 +89,11 @@ export default function ResumeBuilder({ initialContent }) {
   const getContactMarkdown = () => {
     const { contactInfo } = formValues;
     const parts = [];
-    if (contactInfo.email) parts.push(`${contactInfo.email}`);
-    if (contactInfo.mobile) parts.push(`${contactInfo.mobile}`);
+    if (contactInfo.email) parts.push(` ${contactInfo.email}`);
+    if (contactInfo.mobile) parts.push(` ${contactInfo.mobile}`);
     if (contactInfo.linkedin)
       parts.push(`💼 [LinkedIn](${contactInfo.linkedin})`);
-    if (contactInfo.twitter) parts.push(`[Twitter](${contactInfo.twitter})`);
+    if (contactInfo.twitter) parts.push(` [Twitter](${contactInfo.twitter})`);
 
     return parts.length > 0
       ? `## <div align="center">${user.fullName}</div>
@@ -205,7 +205,7 @@ export default function ResumeBuilder({ initialContent }) {
             {/* Contact Information */}
             <div className="space-y-4">
               <div className="bg-blue-100 border-2 border-blue-400 rounded-lg p-4 shadow-sm">
-                <h3 className="text-lg font-bold text-blue-900">📧 Contact Information</h3>
+                <h3 className="text-lg font-bold text-blue-900"> Contact Information</h3>
                 <p className="text-sm text-blue-800 mt-1 font-medium">Your professional contact details that employers will use to reach you</p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border-2 border-gray-300 rounded-lg bg-white shadow-sm">
@@ -275,7 +275,7 @@ export default function ResumeBuilder({ initialContent }) {
             {/* Summary */}
             <div className="space-y-4">
               <div className="bg-green-100 border-2 border-green-400 rounded-lg p-4 shadow-sm">
-                <h3 className="text-lg font-bold text-green-900">💼 Professional Summary</h3>
+                <h3 className="text-lg font-bold text-green-900"> Professional Summary</h3>
                 <p className="text-sm text-green-800 mt-1 font-medium">A brief overview of your career goals and key strengths (2-3 sentences)</p>
               </div>
               <Controller
@@ -299,7 +299,7 @@ export default function ResumeBuilder({ initialContent }) {
             {/* Skills */}
             <div className="space-y-4">
               <div className="bg-purple-100 border-2 border-purple-400 rounded-lg p-4 shadow-sm">
-                <h3 className="text-lg font-bold text-purple-900">🎯 Skills</h3>
+                <h3 className="text-lg font-bold text-purple-900"> Skills</h3>
                 <p className="text-sm text-purple-800 mt-1 font-medium">List your technical and soft skills, separated by commas or new lines</p>
               </div>
               <Controller
@@ -323,7 +323,7 @@ export default function ResumeBuilder({ initialContent }) {
             {/* Experience */}
             <div className="space-y-4">
               <div className="bg-orange-100 border-2 border-orange-400 rounded-lg p-4 shadow-sm">
-                <h3 className="text-lg font-bold text-orange-900">💼 Work Experience</h3>
+                <h3 className="text-lg font-bold text-orange-900"> Work Experience</h3>
                 <p className="text-sm text-orange-800 mt-1 font-medium">List your professional roles, starting with the most recent position</p>
               </div>
               <Controller
@@ -347,7 +347,7 @@ export default function ResumeBuilder({ initialContent }) {
             {/* Education */}
             <div className="space-y-4">
               <div className="bg-indigo-100 border-2 border-indigo-400 rounded-lg p-4 shadow-sm">
-                <h3 className="text-lg font-bold text-indigo-900">🎓 Education</h3>
+                <h3 className="text-lg font-bold text-indigo-900"> Education</h3>
                 <p className="text-sm text-indigo-800 mt-1 font-medium">Your degrees and certifications, starting with the most recent. Include 10th/12th, Diploma, Bachelor's, Master's, or any other degrees.</p>
               </div>
               <Controller
@@ -371,7 +371,7 @@ export default function ResumeBuilder({ initialContent }) {
             {/* Projects */}
             <div className="space-y-4">
               <div className="bg-red-100 border-2 border-red-400 rounded-lg p-4 shadow-sm">
-                <h3 className="text-lg font-bold text-red-900">🚀 Projects</h3>
+                <h3 className="text-lg font-bold text-red-900"> Projects</h3>
                 <p className="text-sm text-red-800 mt-1 font-medium">Showcase your best projects with descriptions of your contributions and impact</p>
               </div>
               <Controller
