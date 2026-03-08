@@ -133,6 +133,9 @@ export default function Header() {
         </div>
 
         <div className="flex items-center gap-2 md:hidden">
+          <SignedIn>
+            <UserButton afterSignOutUrl="/" />
+          </SignedIn>
           <ThemeToggle />
           <Button variant="outline" size="icon" onClick={() => setMenuOpen((v) => !v)} aria-label="Toggle menu">
             {menuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
