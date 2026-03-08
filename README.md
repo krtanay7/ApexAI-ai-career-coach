@@ -204,7 +204,7 @@ CDN:              Vercel Edge Network
 ### **Step 1: Clone Repository**
 
 ```bash
-git clone https://github.com/riteshbhai70/ai-career-coach.git
+git clone https://github.com/krtanay7/ai-career-coach.git
 cd ai-career-coach
 ```
 
@@ -938,7 +938,7 @@ This project is licensed under the **MIT License** - see the LICENSE file for de
 ## 👨‍💻 Author
 
 **Ritesh Kumar**
-- GitHub: [@riteshbhai70](https://github.com/riteshbhai70)
+- GitHub: [@krtanay7](https://github.com/krtanay7)
 - Building AI-powered solutions for career development
 
 ---
@@ -964,6 +964,7 @@ For issues, questions, or suggestions:
 
 ---
 
-**Made with ❤️ by [riteshbhai70](https://github.com/riteshbhai70)**
+**Made with ❤️ by [krtanay7](https://github.com/krtanay7)**
+
 
 
