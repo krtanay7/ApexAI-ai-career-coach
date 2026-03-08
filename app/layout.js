@@ -35,8 +35,8 @@ export default function RootLayout({ children }) {
         <body className={`${manrope.variable} ${spaceGrotesk.variable}`}>
           <ThemeProvider
             attribute="class"
-            defaultTheme="system"
-            enableSystem
+            defaultTheme="dark"
+            enableSystem={false}
             disableTransitionOnChange
           >
             <Header />

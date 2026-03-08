@@ -1,89 +1,102 @@
 "use client";
 
-import React from "react";
+import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useState } from "react";
-import { Button } from "./ui/button";
+import { useTheme } from "next-themes";
+import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import {
-  PenBox,
-  LayoutDashboard,
+  ChevronDown,
   FileText,
   GraduationCap,
-  ChevronDown,
-  Sparkles,
+  LayoutDashboard,
   Lightbulb,
+  Menu,
+  PenBox,
+  Sparkles,
+  X,
 } from "lucide-react";
-import Link from "next/link";
-import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import Image from "next/image";
-import ThemeToggle from "./theme-toggle";
-import { useTheme } from "next-themes";
+import ThemeToggle from "@/components/theme-toggle";
+
+const navLinks = [
+  { label: "Features", href: "/#features" },
+  { label: "How it Works", href: "/#how-it-works" },
+  { label: "Pricing", href: "/#pricing" },
+  { label: "Dashboard", href: "/dashboard" },
+];
 
 export default function Header() {
+  const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
-
-  const logoSrc =
-    mounted && resolvedTheme === "light" ? "/logo_dark.png" : "/logoo.png";
+  
+  const logoSrc = mounted && resolvedTheme === "light" ? "/logo_dark.png" : "/logoo.png";
 
   return (
-    <header className="fixed top-0 z-50 w-full border-b border-white/10 bg-background/70 backdrop-blur-2xl">
+    <header
+      className={`fixed top-0 z-50 w-full transition-all duration-300 ${
+        scrolled
+          ? "border-b border-border/80 bg-background/85 backdrop-blur-2xl dark:bg-[#0b1220]/85"
+          : "border-b border-transparent bg-transparent"
+      }`}
+    >
       <nav className="container mx-auto flex h-20 items-center justify-between px-4">
-        <Link href="/" className="group flex items-center gap-3">
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-2 transition-transform duration-300 group-hover:rotate-3">
-            <Image
-              src={logoSrc}
-              alt="ApexAI Logo"
-              width={150}
-              height={48}
-              className="h-10 w-auto object-contain"
-            />
-          </div>
-          <div className="hidden md:block">
-            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-              AI Career Intelligence
-            </p>
-            <p className="font-semibold">ApexAI Coach</p>
-          </div>
+        <Link href="/" className="flex items-center gap-3" aria-label="ApexAI home">
+          <Image src={logoSrc} alt="ApexAI" width={140} height={40} className="h-9 w-auto object-contain" priority />
         </Link>
 
-        <div className="flex items-center gap-2 md:gap-3">
-          <ThemeToggle />
+        <div className="hidden items-center gap-8 md:flex">
+          {navLinks.map((item) => (
+            <Link key={item.href} href={item.href} className="text-sm font-medium text-foreground/80 transition-colors hover:text-foreground">
+              {item.label}
+            </Link>
+          ))}
+        </div>
 
+        <div className="hidden items-center gap-2 md:flex">
+          <ThemeToggle />
+          <SignedOut>
+            <Link href="/sign-in">
+              <Button className="bg-brand-gradient text-white hover:brightness-110">Get Started</Button>
+            </Link>
+          </SignedOut>
           <SignedIn>
             <Link href="/dashboard">
               <Button
                 variant="outline"
-                className="hidden items-center gap-2 md:inline-flex"
+                className="h-12 rounded-2xl border-border/90 bg-card/70 px-7 text-base font-semibold"
               >
                 <LayoutDashboard className="h-4 w-4" />
                 Dashboard
-              </Button>
-              <Button variant="ghost" className="h-10 w-10 p-0 md:hidden">
-                <LayoutDashboard className="h-4 w-4" />
               </Button>
             </Link>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button className="flex items-center gap-2">
+                <Button className="h-12 rounded-2xl bg-brand-gradient px-7 text-base font-semibold text-white shadow-glow hover:brightness-110">
                   <Sparkles className="h-4 w-4" />
-                  <span className="hidden md:block">Toolkit</span>
+                  <span>Toolkit</span>
                   <ChevronDown className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="end"
-                className="w-56 border-white/10 bg-card/90 backdrop-blur-xl"
+                className="w-56 border-white/10 bg-card/95 backdrop-blur-xl dark:bg-[#111827]/95"
               >
                 <DropdownMenuItem asChild>
                   <Link href="/resume" className="flex items-center gap-2">
@@ -114,28 +127,57 @@ export default function Header() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          </SignedIn>
 
-          <SignedOut>
-            <SignInButton>
-              <Button variant="outline">Sign In</Button>
-            </SignInButton>
-          </SignedOut>
-
-          <SignedIn>
-            <UserButton
-              appearance={{
-                elements: {
-                  avatarBox: "w-10 h-10 ring-2 ring-primary/40",
-                  userButtonPopoverCard: "shadow-xl",
-                  userPreviewMainIdentifier: "font-semibold",
-                },
-              }}
-              afterSignOutUrl="/"
-            />
+            <UserButton afterSignOutUrl="/" />
           </SignedIn>
         </div>
+
+        <div className="flex items-center gap-2 md:hidden">
+          <ThemeToggle />
+          <Button variant="outline" size="icon" onClick={() => setMenuOpen((v) => !v)} aria-label="Toggle menu">
+            {menuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+          </Button>
+        </div>
       </nav>
+
+      {menuOpen && (
+        <div className="border-b border-border/70 bg-background/95 px-4 pb-5 pt-2 backdrop-blur-xl md:hidden">
+          <div className="container mx-auto space-y-2">
+            {navLinks.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setMenuOpen(false)}
+                className="block rounded-xl px-3 py-2 text-sm font-medium text-foreground/85 hover:bg-secondary"
+              >
+                {item.label}
+              </Link>
+            ))}
+            <SignedOut>
+              <Link href="/sign-in" onClick={() => setMenuOpen(false)}>
+                <Button className="mt-2 w-full bg-brand-gradient text-white">Get Started</Button>
+              </Link>
+            </SignedOut>
+            <SignedIn>
+              <Link href="/dashboard" onClick={() => setMenuOpen(false)}>
+                <Button className="mt-2 w-full bg-brand-gradient text-white">Dashboard</Button>
+              </Link>
+              <Link href="/resume" onClick={() => setMenuOpen(false)}>
+                <Button variant="outline" className="mt-2 w-full">Resume Builder</Button>
+              </Link>
+              <Link href="/ai-cover-letter" onClick={() => setMenuOpen(false)}>
+                <Button variant="outline" className="mt-2 w-full">Cover Letters</Button>
+              </Link>
+              <Link href="/interview" onClick={() => setMenuOpen(false)}>
+                <Button variant="outline" className="mt-2 w-full">Interview Prep</Button>
+              </Link>
+              <Link href="/skill-roadmap" onClick={() => setMenuOpen(false)}>
+                <Button variant="outline" className="mt-2 w-full">Skill Roadmap</Button>
+              </Link>
+            </SignedIn>
+          </div>
+        </div>
+      )}
     </header>
   );
 }
