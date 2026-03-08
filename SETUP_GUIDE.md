@@ -99,14 +99,14 @@ This is where the app stores user data.
 4. Copy the connection string (looks like: `postgresql://user:password@host:5432/dbname`)
 5. Save this for later (you'll need it in `.env`)
 
-### 2. **Google gemini API Key** 🤖
+### 2. **Groq API Key** 🤖
 
 This powers the AI features for interview questions.
 
 **Steps**:
-1. Go to https://aistudio.google.com/app/apikeys
+1. Go to https://console.groq.com/keys
 2. Click "Create API Key"
-3. Select or create a Google Cloud project
+3. Create a project/workspace if prompted
 4. Copy the API key
 5. Save this for later (you'll need it in `.env`)
 
@@ -199,8 +199,8 @@ Create a `.env` file in the project root folder with all the API keys.
 # Database Connection (from Neon PostgreSQL)
 DATABASE_URL="postgresql://user:password@host:5432/dbname"
 
-# gemini AI API Key (from Google)
-GROQ_API_KEY="your_gemini_api_key_here"
+# Groq AI API Key
+GROQ_API_KEY="your_groq_api_key_here"
 
 # Clerk Authentication Keys
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_test_your_clerk_publishable_key"
@@ -300,7 +300,7 @@ Now everything is set up! Start the development server.
 
 - [ ] Node.js installed (check with `node --version`)
 - [ ] Neon PostgreSQL account created with database URL
-- [ ] Google gemini API key obtained
+- [ ] Groq API key obtained
 - [ ] Clerk account created with API keys
 - [ ] `.env` file created with all keys
 - [ ] Project cloned/downloaded
@@ -437,7 +437,7 @@ taskkill /F /IM node.exe
 - **Node.js**: https://nodejs.org/
 - **Git**: https://git-scm.com/
 - **Neon PostgreSQL**: https://neon.tech/
-- **Google gemini API**: https://aistudio.google.com/
+- **Groq API**: https://console.groq.com/
 - **Clerk Authentication**: https://clerk.com/
 - **Next.js Documentation**: https://nextjs.org/docs
 - **Prisma Documentation**: https://www.prisma.io/docs/
@@ -464,5 +464,6 @@ rmdir .next -Recurse -Force
 npm install
 npx prisma generate
 npm run dev
+
 
 

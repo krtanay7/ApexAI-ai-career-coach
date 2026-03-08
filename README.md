@@ -37,7 +37,7 @@
 - **Career Insights**: Users struggle to understand industry demands and career paths
 
 ### Solution
-An intelligent platform that uses **Google gemini AI** to generate customized, industry-aware content while providing actionable insights for career growth.
+An intelligent platform that uses **Groq-powered AI** to generate customized, industry-aware content while providing actionable insights for career growth.
 
 ---
 
@@ -48,10 +48,10 @@ An intelligent platform that uses **Google gemini AI** to generate customized, i
 | Feature | Description | Technology |
 |---------|-------------|-----------|
 | **User Authentication** | Secure sign-up/sign-in with Clerk | Clerk Auth |
-| **Resume Builder** | Drag-and-drop resume creation with AI improvements | React Hook Form + gemini AI |
-| **Interview Preparation** | AI-generated technical interview questions | gemini Flash 2.5 |
-| **Cover Letter Generator** | Context-aware cover letters tailored to job descriptions | gemini AI |
-| **Industry Analytics** | Real-time salary ranges, market trends, in-demand skills | gemini + Inngest |
+| **Resume Builder** | Drag-and-drop resume creation with AI improvements | React Hook Form + Groq AI |
+| **Interview Preparation** | AI-generated technical interview questions | Groq chat models |
+| **Cover Letter Generator** | Context-aware cover letters tailored to job descriptions | Groq AI |
+| **Industry Analytics** | Real-time salary ranges, market trends, in-demand skills | Groq + Inngest |
 | **Performance Tracking** | Quiz results, progress charts, improvement tips | Recharts + Prisma |
 | **Profile Management** | Onboarding, skill tracking, industry selection | Clerk + Prisma |
 
@@ -92,7 +92,7 @@ Database:         PostgreSQL (Neon)
 ORM:              Prisma 6.2.1
 Authentication:   Clerk 6.9.10
 Job Queue:        Inngest 3.29.3
-AI Model:         Google gemini 2.5 Flash
+AI Model:         Groq models (default: llama-3.1-8b-instant)
 HTTP Client:      Built-in fetch API
 Caching:          Next.js Revalidation
 ```
@@ -154,7 +154,7 @@ CDN:              Vercel Edge Network
 │  └─ Batch AI Content Generation                        │
 ├─────────────────────────────────────────────────────────┤
 │              EXTERNAL SERVICES                          │
-│  ├─ Google gemini AI (Content Generation)              │
+│  ├─ Groq-powered AI (Content Generation)              │
 │  ├─ Clerk Auth (User Management)                       │
 │  └─ Neon PostgreSQL (Data Persistence)                 │
 ├─────────────────────────────────────────────────────────┤
@@ -198,7 +198,7 @@ CDN:              Vercel Edge Network
 - Node.js 18+ or higher
 - npm/yarn package manager
 - PostgreSQL database (or Neon account for cloud hosting)
-- Google gemini API key
+- Groq API key
 - Clerk account for authentication
 
 ### **Step 1: Clone Repository**
@@ -273,9 +273,9 @@ NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/onboarding
 NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/onboarding
 
 # ==========================================
-# GOOGLE gemini AI API
+# GROQ AI API
 # ==========================================
-GROQ_API_KEY="your_gemini_api_key_here"
+GROQ_API_KEY="your_groq_api_key_here"
 
 # ==========================================
 # INNGEST (Background Jobs)
@@ -296,8 +296,8 @@ INNGEST_EVENT_KEY="optional_for_inngest_events"
    - Copy publishable and secret keys
 
 3. **GROQ_API_KEY**:
-   - Visit [Google AI Studio](https://ai.google.dev)
-   - Create API key for gemini
+   - Visit [Groq Console](https://console.groq.com/keys)
+   - Create API key for Groq
 
 4. **INNGEST** (Optional):
    - Register at [inngest.com](https://inngest.com)
@@ -459,7 +459,7 @@ User adds work experience via entry-form
     ↓
 On submit, user can request AI improvement
     ↓
-Server action calls gemini AI with:
+Server action calls Groq AI with:
    - User's current content
    - User's industry & skills
    - Resume writing best practices
@@ -484,7 +484,7 @@ Server action fetch user details:
    - Skills
    - Experience
     ↓
-Call gemini AI with prompt:
+Call Groq AI with prompt:
    "Generate 10 technical questions for [industry]"
     ↓
 AI returns JSON array of questions with:
@@ -527,7 +527,7 @@ Server action constructs AI prompt:
    - Job title and company info
    - Job description content
     ↓
-gemini AI generates professional letter:
+Groq AI generates professional letter:
    - Professional tone
    - Relevant skills highlighted
    - Company-specific details
@@ -551,9 +551,9 @@ Check if user has industryInsight in DB
     ↓
 If not exists:
    - Call generateAIInsights()
-   - Pass user's industry to gemini
+   - Pass user's industry to Groq
     ↓
-gemini returns JSON with:
+Groq returns JSON with:
    - Salary ranges (5+ roles)
    - Growth rate (%)
    - Demand level (High/Med/Low)
@@ -575,7 +575,7 @@ Inngest triggers function
 Fetch all industries from DB
     ↓
 For each industry:
-   - Call gemini with latest prompt
+   - Call Groq with latest prompt
    - Get fresh insights
    - Update DB record
    - Set nextUpdate to +7 days
@@ -775,7 +775,7 @@ getIndustryInsights() → IndustryInsight
 
 ### **🎯 AI Content Generation**
 
-All AI features use **Google gemini 2.5 Flash** model:
+All AI features use **Groq models (default: llama-3.1-8b-instant)** model:
 - Fast inference (real-time responses)
 - Cost-effective
 - Supports structured JSON output
@@ -784,7 +784,7 @@ All AI features use **Google gemini 2.5 Flash** model:
 **Process:**
 1. Collect context (user profile, job details, etc.)
 2. Construct detailed prompt with instructions
-3. Call gemini API with structured output request
+3. Call Groq API with structured output request
 4. Parse JSON response
 5. Store in database
 6. Display to user
@@ -800,7 +800,7 @@ All AI features use **Google gemini 2.5 Flash** model:
 
 Using **Inngest** for background jobs:
 - **Cron Schedule**: Every Sunday at midnight UTC
-- **Process**: Fetches all industries → Calls gemini for fresh data → Updates DB
+- **Process**: Fetches all industries → Calls Groq for fresh data → Updates DB
 - **Data**: Salary ranges, trends, skills, market outlook
 - **Benefits**: Users always see current industry insights
 
@@ -828,7 +828,7 @@ Using **Inngest** for background jobs:
 | Package | Version | Purpose |
 |---------|---------|---------|
 | `@clerk/nextjs` | 6.9.10 | Enterprise authentication with OAuth support |
-| `@google/generative-ai` | 0.21.0 | Google gemini API client for AI features |
+| `groq-sdk` | 0.37.0 | Groq API client for AI features |
 | `@prisma/client` | 6.2.1 | Type-safe database ORM |
 | `react-hook-form` | 7.54.2 | Efficient form state management |
 | `zod` | 3.24.1 | TypeScript-first schema validation |
@@ -923,7 +923,7 @@ Contributions are welcome! Here's how:
 - [Prisma ORM Guide](https://www.prisma.io/docs)
 - [Tailwind CSS](https://tailwindcss.com/docs)
 - [Clerk Auth](https://clerk.com/docs)
-- [Google gemini API](https://ai.google.dev/docs)
+- [Groq API](https://console.groq.com/docs)
 - [Inngest Background Jobs](https://www.inngest.com/docs)
 - [Shadcn/ui Components](https://ui.shadcn.com)
 
@@ -945,7 +945,7 @@ This project is licensed under the **MIT License** - see the LICENSE file for de
 
 ## 🙏 Acknowledgments
 
-- Google for gemini AI API
+- Groq for AI API infrastructure
 - Clerk for authentication
 - Neon for PostgreSQL hosting
 - Vercel for hosting & deployment
@@ -965,4 +965,5 @@ For issues, questions, or suggestions:
 ---
 
 **Made with ❤️ by [riteshbhai70](https://github.com/riteshbhai70)**
+
 

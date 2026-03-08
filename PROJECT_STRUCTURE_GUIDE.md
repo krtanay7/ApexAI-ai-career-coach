@@ -1,9 +1,9 @@
 # 📚 AI Career Coach - Project Structure & File Explanation
 
 ## Project Overview
-**AI Career Coach** is a full-stack web application that helps professionals build resumes, prepare for interviews, generate cover letters, and gain industry insights using AI (Google gemini).
+**AI Career Coach** is a full-stack web application that helps professionals build resumes, prepare for interviews, generate cover letters, and gain industry insights using AI (Groq).
 
-**Tech Stack**: Next.js 16, React 19, PostgreSQL (Neon), Prisma ORM, Clerk Auth, Google gemini API, Tailwind CSS
+**Tech Stack**: Next.js 16.1.4, React 19.2.3, PostgreSQL (Neon), Prisma 6.2.1, Clerk 6.9.10, Groq SDK 0.37.0, Tailwind CSS 3.4.1
 
 ---
 
@@ -14,7 +14,7 @@
 #### `package.json`
 - **What**: Lists all project dependencies and scripts
 - **Contains**: 
-  - Dependencies: Next.js, React, Prisma, Clerk, Google Generative AI, Radix UI components
+  - Dependencies: Next.js, React, Prisma, Clerk, Groq SDK, Radix UI components
   - Scripts: `dev` (start development), `build`, `start`, `lint`
 - **How to modify**: 
   - Add new packages: `npm install package-name`
@@ -346,7 +346,7 @@ You need to create `.env.local` with:
 DATABASE_URL=your_postgresql_connection
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=from_clerk
 CLERK_SECRET_KEY=from_clerk
-GOOGLE_GENERATIVE_AI_API_KEY=from_google
+GROQ_API_KEY=from_groq
 INNGEST_EVENT_KEY=from_inngest
 INNGEST_SIGNING_KEY=from_inngest
 ```
@@ -396,4 +396,5 @@ npm run lint         # Check code quality
 - Follow the folder structure pattern
 - Test changes in dev mode before production
 - Use `npm run lint` to check for errors
+
 

@@ -32,7 +32,7 @@ The **Coding Challenge Practice** feature has been successfully integrated into 
 - **`generateCodingChallenges(language, difficulty)`**
   - Creates coding challenges for specified language/difficulty
   - Saves to database with mock data as fallback
-  - Generates via Google Gemini API with graceful degradation
+  - Generates via Groq API with graceful degradation
 
 - **`getCodingChallenges(language, difficulty)`**
   - Fetches user's challenges from database
@@ -177,7 +177,7 @@ User interacts → submitChallengeCode → Updates Progress
 
 ### Dependencies Used
 - **Frontend**: React, shadcn/ui components, Recharts
-- **Backend**: Prisma ORM, Clerk authentication, Google Gemini API
+- **Backend**: Prisma ORM, Clerk authentication, Groq API
 - **UI Components**: Card, Badge, Button, Progress bar
 - **Icons**: Lucide React icons
 - **Notifications**: Sonner toast
@@ -188,7 +188,7 @@ User interacts → submitChallengeCode → Updates Progress
 - Efficient aggregation for statistics
 
 ### API Integration
-- **Google Gemini 2.5 Flash** for challenge generation
+- **Groq models (default: llama-3.1-8b-instant)** for challenge generation
 - Fallback mock data for rate limit exceeded (429)
 - Quota-aware error handling
 - Structured JSON responses
@@ -327,3 +327,4 @@ InterviewPrepPage
 **Feature Status**: ✅ **PRODUCTION READY**
 **Last Updated**: Today
 **Created by**: AI Career Coach Development Team
+
